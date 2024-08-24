@@ -1008,6 +1008,19 @@ watchdog = {version = ">=2.1.5,<5", markers = "platform_system != \"Darwin\""}
 snowflake = ["snowflake-connector-python (>=2.8.0)", "snowflake-snowpark-python (>=0.9.0)"]
 
 [[package]]
+name = "streamlit-timeline"
+version = "0.0.2"
+description = "A Streamlit custom component to display a timeline"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "streamlit-timeline-0.0.2.tar.gz", hash = "sha256:6d77e418cc08211d0cbe87f21cb9b57038b1cda68c364e5a4e518496f6db955b"},
+]
+
+[package.dependencies]
+streamlit = ">=0.70"
+
+[[package]]
 name = "tenacity"
 version = "8.5.0"
 description = "Retry code until it succeeds"
@@ -1142,4 +1155,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "51d8c20596675b5bc0d5192104942a8a21e16572e39ad854ec58d9fb05018382"
+content-hash = "c4114b4618c86adbcf77378ba03951d6b232cb8f820abf9e3812d72f61b74209"

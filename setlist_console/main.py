@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 from datetime import datetime, time
+from streamlit_timeline import timeline
 
 # Function to fetch album data from the API
 def fetch_album_data():
@@ -144,11 +145,44 @@ with col3:
     if st.button("Smooth segue"):
         record_transition("Smooth segue")
 
-
 # Display the current start time and song details
 st.write(f"**Current Song:** {st.session_state.selected_song if st.session_state.selected_song else 'None'}")
 st.write(f"**Start Time:** {st.session_state.start_time if st.session_state.song_started else 'Not Started'}")
 st.write(f"**End Time:** {st.session_state.end_time if st.session_state.end_time else 'Not Ended'}")
+
+# Prepare TimelineJS data
+timeline_entries = {
+    "events": [
+        {
+            "start_date": {
+                "year": datetime.now().year,
+                "month": datetime.now().month,
+                "day": datetime.now().day,
+                "hour": int(datetime.strptime(entry['start_time'], "%H:%M:%S").strftime("%H")),
+                "minute": int(datetime.strptime(entry['start_time'], "%H:%M:%S").strftime("%M")),
+                "second": int(datetime.strptime(entry['start_time'], "%H:%M:%S").strftime("%S"))
+            },
+            "end_date": {
+                "year": datetime.now().year,
+                "month": datetime.now().month,
+                "day": datetime.now().day,
+                "hour": int(datetime.strptime(entry['end_time'], "%H:%M:%S").strftime("%H")),
+                "minute": int(datetime.strptime(entry['end_time'], "%H:%M:%S").strftime("%M")),
+                "second": int(datetime.strptime(entry['end_time'], "%H:%M:%S").strftime("%S"))
+            },
+            "text": {
+                "headline": entry['songname'],
+                "text": f"Transition: {entry['transition']}<br>Duration: {entry['duration']}<br>Footnote: {entry['footnote']}"
+            },
+            "group": entry['setnumber']
+        }
+        for entry in st.session_state.setlist
+        if entry['start_time'] != "N/A" and entry['end_time'] != "N/A"
+    ]
+}
+
+if len(timeline_entries["events"]) > 0:
+    timeline(timeline_entries, height=600)
 
 # Display live setlist in the specified format
 with st.expander("Live Setlist"):
