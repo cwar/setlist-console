@@ -44,7 +44,7 @@ The Setlist Console is a Streamlit application designed to help track and manage
    ```
 2. **Install Poetry (if not already installed):**
 
-	Follow the Poetry installation guide to install Poetry.
+	Follow the [Poetry installation guide](https://python-poetry.org/docs/#installation) to install Poetry.
 
 3. **Install Dependencies with Poetry:**
 
