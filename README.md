@@ -38,13 +38,13 @@ The Setlist Console is a Streamlit application designed to help track and manage
 
 1. **Clone the Repository:**
 
-   ```sh
-   git clone <repository-url>
-   cd <repository-directory>
-   ```
+	```sh
+	git clone https://github.com/cwar/setlist-console.git
+	cd setlist-console
+	```
 2. **Install Poetry (if not already installed):**
 
-	Follow the [Poetry installation guide](https://python-poetry.org/docs/#installation) to install Poetry.
+   	Follow the [Poetry installation guide](https://python-poetry.org/docs/#installation) to install Poetry.
 
 3. **Install Dependencies with Poetry:**
 
@@ -55,5 +55,6 @@ The Setlist Console is a Streamlit application designed to help track and manage
 4. **Run the Application:**
 
 	```sh
-	poetry run streamlit run app.py
+ 	poetry shell
+	streamlit run setlist_console/main.py
 	```
