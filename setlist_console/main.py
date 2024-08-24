@@ -3,6 +3,17 @@ import requests
 from datetime import datetime, time
 from streamlit_timeline import timeline
 
+# Ensure start_time and end_time are datetime.time objects
+def ensure_time_object(time_value):
+    if isinstance(time_value, str):
+        # Convert from string to datetime.time
+        return datetime.strptime(time_value, "%H:%M:%S").time()
+    elif isinstance(time_value, time):
+        # Already a datetime.time object
+        return time_value
+    else:
+        raise ValueError("Invalid time format")
+
 # Function to fetch album data from the API
 def fetch_album_data():
     url = "https://kglw.net/api/v2/albums.json"
@@ -40,8 +51,8 @@ def record_transition(transition_type):
         # Calculate duration
         duration = None
         if st.session_state.start_time and st.session_state.end_time:
-            start_dt = datetime.combine(datetime.today(), st.session_state.start_time)
-            end_dt = datetime.combine(datetime.today(), st.session_state.end_time)
+            start_dt = datetime.combine(datetime.today(), ensure_time_object(st.session_state.start_time))
+            end_dt = datetime.combine(datetime.today(), ensure_time_object(st.session_state.end_time))
             duration = end_dt - start_dt
             duration_seconds = duration.total_seconds()
             duration_str = f"{int(duration_seconds)} seconds"
@@ -67,7 +78,6 @@ def record_transition(transition_type):
     st.session_state.start_time = None
     st.session_state.end_time = None
     st.session_state.song_started = False
-
 
 # Fetch and organize the data
 try:
@@ -144,11 +154,41 @@ with col3:
 with col3:
     if st.button("Smooth segue"):
         record_transition("Smooth segue")
+col4, col5, col6 = st.columns([2, 1, 1])
 
-# Display the current start time and song details
-st.write(f"**Current Song:** {st.session_state.selected_song if st.session_state.selected_song else 'None'}")
-st.write(f"**Start Time:** {st.session_state.start_time if st.session_state.song_started else 'Not Started'}")
-st.write(f"**End Time:** {st.session_state.end_time if st.session_state.end_time else 'Not Ended'}")
+with col4:
+    st.write(f"**Current Song:** {st.session_state.selected_song if st.session_state.selected_song else 'None'}")
+
+with col5:
+    # Handle editing mode
+    if st.session_state.get("is_editing_start_time", False):
+        new_time = st.text_input("Edit Start Time", value=st.session_state.start_time)
+
+        # Use the form to group buttons together and ensure state update before rerender
+        with st.form(key="edit_start_time_form"):
+            confirm_button = st.form_submit_button("Confirm")
+            cancel_button = st.form_submit_button("Cancel")
+
+            if confirm_button:
+                st.session_state.start_time = new_time
+                st.session_state.is_editing_start_time = False
+                st.rerun()  # Force a rerun to immediately reflect changes
+            elif cancel_button:
+                st.session_state.is_editing_start_time = False
+                st.rerun()
+
+    else:
+        st.write(f"**Start Time:** {st.session_state.start_time if st.session_state.song_started else 'Not Started'}")
+        if st.session_state.song_started:
+            if st.button("Edit Start Time"):
+                st.session_state.is_editing_start_time = True
+                st.rerun()
+
+with col6:
+    st.write(f"**End Time:** {st.session_state.end_time if st.session_state.end_time else 'Not Ended'}")
+
+
+
 
 # Prepare TimelineJS data
 timeline_entries = {
