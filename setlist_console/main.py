@@ -2,6 +2,62 @@ import streamlit as st
 import requests
 from datetime import datetime, time
 from streamlit_timeline import timeline
+import redis
+import json
+import os
+from dotenv import load_dotenv
+import uuid
+import jwt
+
+load_dotenv()
+
+# Initialize Redis connection
+redis_client = redis.Redis(
+  host=os.environ["REDIS_URL"],
+  port=os.environ["REDIS_PORT"],
+  password=st.secrets["REDIS_PASSWORD"]
+)
+
+def get_user_key():
+    """Retrieve and decode the 'ajs_anonymous_id' with a dynamic suffix to use the user_id as the key."""
+    if 'user_key' not in st.session_state:
+        cookies = st.context.cookies
+        token_key = None
+        
+        # Look for a key that starts with 'ajs_anonymous_id'
+        for key in cookies.keys():
+            if key.startswith('ajs_anonymous_id'):
+                token_key = key
+                break
+        
+        if token_key:
+            user_key = st.context.cookies[token_key]
+        else:
+            user_key = str(uuid.uuid4())
+        
+        st.session_state.user_key = user_key
+    return st.session_state.user_key
+
+def save_setlist_to_redis():
+    """Save the setlist to Redis using the user's key."""
+    user_key = get_user_key()  # Get the unique user key
+    setlist_data = {
+        "setlist": st.session_state.setlist,
+        "position_counter": st.session_state.position_counter
+    }
+    redis_client.set(user_key, json.dumps(setlist_data))
+
+def load_setlist_from_redis():
+    """Load the setlist from Redis using the user's key."""
+    user_key = get_user_key()  # Get the unique user key
+    setlist_data = redis_client.get(user_key)
+    if setlist_data:
+        setlist_data = json.loads(setlist_data)
+        st.session_state.setlist = setlist_data.get("setlist", [])
+        st.session_state.position_counter = setlist_data.get("position_counter", 1)
+    else:
+        st.session_state.setlist = []
+        st.session_state.position_counter = 1
 
 # Ensure start_time and end_time are datetime.time objects
 def ensure_time_object(time_value):
@@ -74,10 +130,27 @@ def record_transition(transition_type):
         # Update position for the next song
         st.session_state.position_counter += 1
 
+        # Save setlist to Redis
+        save_setlist_to_redis()
+
     # Reset start and end times for the next song
     st.session_state.start_time = None
     st.session_state.end_time = None
     st.session_state.song_started = False
+
+def time_string_to_dict(time_str):
+    """Convert time string to a dictionary suitable for TimelineJS."""
+    if time_str == "N/A":
+        return None
+    t = datetime.strptime(time_str, "%H:%M:%S").time()
+    return {
+        "year": datetime.now().year,
+        "month": datetime.now().month,
+        "day": datetime.now().day,
+        "hour": t.hour,
+        "minute": t.minute,
+        "second": t.second
+    }
 
 # Fetch and organize the data
 try:
@@ -115,7 +188,7 @@ if "selected_song" not in st.session_state:
 if "song_started" not in st.session_state:
     st.session_state.song_started = False
 if "setlist" not in st.session_state:
-    st.session_state.setlist = []
+    load_setlist_from_redis()  # Load setlist from Redis if it exists
 if "position_counter" not in st.session_state:
     st.session_state.position_counter = 1
 if "selected_edit_index" not in st.session_state:

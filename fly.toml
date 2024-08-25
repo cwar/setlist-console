@@ -1,12 +1,10 @@
-# fly.toml app configuration file generated for setlist-console on 2024-08-24T15:39:51Z
+# fly.toml app configuration file generated for setlist-console on 2024-08-25T01:22:16Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
 app = 'setlist-console'
 primary_region = 'iad'
-
-[build]
 
 [http_service]
   internal_port = 8501
@@ -20,3 +18,7 @@ primary_region = 'iad'
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
+
+[env]
+  REDIS_PORT="6379"
+  REDIS_URL="fly-setlist-console.upstash.io"
